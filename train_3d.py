@@ -117,8 +117,11 @@ if __name__ == '__main__':
 
     for epoch in range(ns.epochs):
         feed(net, optimizer, x, True, True, batch, epoch, log_path)
-        current_checkpoint=os.path.join(checkpoint_dir,str(ns.epochs),".pth")
+        current_checkpoint=os.path.join(checkpoint_dir,str(epoch),".pth")
         torch.save({
             'epoch': epoch,
-            'model_state_dict': net.state_dict(),
+            'net':net,
+            'model_state_dict':net.state_dict(),
         }, current_checkpoint)
+
+
