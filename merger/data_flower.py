@@ -54,7 +54,8 @@ def all_h5(parent, normalize=False, include_label=False,
 def walk_files(path):
     for r, ds, fs in os.walk(path):
         for f in fs:
-            yield os.path.join(r, f)
+            if f.endswith('.h5'):
+                yield os.path.join(r, f)
 
 
 def last_dirname(file_path):
