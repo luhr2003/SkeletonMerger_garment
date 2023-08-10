@@ -28,6 +28,7 @@ arg_parser.add_argument('-e', '--epochs', type=int, default=80,
 arg_parser.add_argument('--max-points', type=int, default=10000,
                         help='Indicates maximum points in each input point cloud.')
 arg_parser.add_argument('--log_dir',type=str,default="log")
+arg_parser.add_argument('--prefix',type=str,default="")
 
 
 def L2(embed):
@@ -95,11 +96,14 @@ if __name__ == '__main__':
     dataset=ns.data_dir
     batch = ns.batch
     x = process_data(dataset)
+    prefix=ns.prefix
     print(x.shape)
     net = Net(ns.max_points, ns.n_keypoint).to(ns.device)
     optimizer = optim.Adadelta(net.parameters(), eps=1e-2)
 
     logdir=ns.log_dir
+    make_dir(logdir)
+    logdir=os.path.join(logdir,prefix)
     make_dir(logdir)
     log_dir_path=os.path.join(logdir,"log")
     make_dir(log_dir_path)
