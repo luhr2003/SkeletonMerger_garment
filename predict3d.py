@@ -15,13 +15,13 @@ import numpy as np
 import argparse
 
 arg_parser = argparse.ArgumentParser(description="Predictor for Skeleton Merger on KeypointNet dataset. Outputs a npz file with two arrays: kpcd - (N, k, 3) xyz coordinates of keypoints detected; nfact - (N, 2) normalization factor, or max and min coordinate values in a point cloud.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-arg_parser.add_argument('-i', '--pcd-path', type=str, default='/home/luhr/correspondence/SkeletonMerger_garment/cloth3d/train',
+arg_parser.add_argument('-i', '--pcd-path', type=str, default='/home/luhr/correspondence/softgym_cloth/cloth3d/train',
                         help='Point cloud file folder path from KeypointNet dataset.')
-arg_parser.add_argument('-m', '--checkpoint-path', '--model-path', type=str, default='20.pth',
+arg_parser.add_argument('-m', '--checkpoint-path', '--model-path', type=str, default='50.pth',
                         help='Model checkpoint file path to load.')
 arg_parser.add_argument('-d', '--device', type=str, default='cuda',
                         help='Pytorch device for predicting.')
-arg_parser.add_argument('-k', '--n-keypoint', type=int, default=10,
+arg_parser.add_argument('-k', '--n-keypoint', type=int, default=50,
                         help='Requested number of keypoints to detect.')
 arg_parser.add_argument('-b', '--batch', type=int, default=4,
                         help='Batch size.')
@@ -123,9 +123,9 @@ def find_nearest_point(points,kp):
 def visualize_pointcloud(pc,kp):
     pcd=o3d.geometry.PointCloud()
     pcd.points=o3d.utility.Vector3dVector(pc)
+    colors= np.zeros_like(pc)
+    colors[kp]=np.array([1,0,0])
     pcd.colors=o3d.utility.Vector3dVector(np.zeros_like(pc))
-    # change keypoint color and size
-    pcd.colors[kp]=np.array([1,0,0])
     o3d.visualization.draw_geometries([pcd])
 
 
@@ -156,5 +156,5 @@ if __name__=='__main__':
 
     for i in range(len(out_kpcd)):
         kp_id=find_nearest_point(ori_data[i],out_kpcd[i])
-        visualize_pointcloud(ori_data[i],kp_id)
-        np.savez(paths[i].replace('processed.obj','keypoints.npz'),keypoints=out_kpcd[i],keypoint_id=kp_id,pointcloud=ori_data[i])
+        # visualize_pointcloud(ori_data[i],kp_id)
+        np.savez(paths[i].replace('processed.obj','keypoints.npz'+str(ns.n_keypoint)),keypoints=out_kpcd[i],keypoint_id=kp_id,pointcloud=ori_data[i])

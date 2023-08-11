@@ -81,7 +81,7 @@ def get_rotation_matrix(rotationVector, angle):
 
 if __name__=="__main__":
     parser= argparse.ArgumentParser()
-    parser.add_argument("--data_path",type=str, default="/home/luhr/correspondence/SkeletonMerger_garment/cloth3d/train")
+    parser.add_argument("--data_path",type=str, default="/home/luhr/correspondence/softgym_cloth/cloth3d/train")
 
     args=parser.parse_args()
     data_path=args.data_path
