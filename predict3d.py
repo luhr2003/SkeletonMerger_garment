@@ -15,7 +15,7 @@ import numpy as np
 import argparse
 
 arg_parser = argparse.ArgumentParser(description="Predictor for Skeleton Merger on KeypointNet dataset. Outputs a npz file with two arrays: kpcd - (N, k, 3) xyz coordinates of keypoints detected; nfact - (N, 2) normalization factor, or max and min coordinate values in a point cloud.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-arg_parser.add_argument('-i', '--pcd-path', type=str, default='/home/luhr/correspondence/softgym_cloth/cloth3d/train',
+arg_parser.add_argument('-i', '--pcd-path', type=str, default='/home/luhr/correspondence/softgym_cloth/garmentgym/dress',
                         help='Point cloud file folder path from KeypointNet dataset.')
 arg_parser.add_argument('-m', '--checkpoint-path', '--model-path', type=str, default='50.pth',
                         help='Model checkpoint file path to load.')
@@ -102,7 +102,7 @@ def prepare_data(path):
     ori_data=[]
     for root,dirs,files in os.walk(path):
         for file in files:
-            if file.endswith('processed.obj'):
+            if file.endswith('.obj'):
                 file_path=os.path.join(root,file)
                 vertices, trangle_faces, stretch_edges, bend_edges, shear_edges = load_cloth_mesh(os.path.join(root, file))
                 points=np.array(vertices)
@@ -120,13 +120,25 @@ def find_nearest_point(points,kp):
     dist=np.linalg.norm(kp[np.newaxis,:,:]-points[:,np.newaxis,:],axis=2)
     return np.argmin(dist,axis=0)
 
+def find_nearest_point_group(points,kp):
+    kp=np.array(kp)
+    points=np.array(points)
+    dist=np.linalg.norm(kp[:,np.newaxis,:]-points[np.newaxis,:,:],axis=2)
+    return np.argsort(dist,axis=1)[:,:20]
+
 def visualize_pointcloud(pc,kp):
+    kp=kp.reshape(-1)
     pcd=o3d.geometry.PointCloud()
     pcd.points=o3d.utility.Vector3dVector(pc)
     colors= np.zeros_like(pc)
     colors[kp]=np.array([1,0,0])
-    pcd.colors=o3d.utility.Vector3dVector(np.zeros_like(pc))
+    pcd.colors=o3d.utility.Vector3dVector(colors)
     o3d.visualization.draw_geometries([pcd])
+
+def get_id_visualize(pc,kp):
+    for i in range(len(kp)):
+        visualize_pointcloud(pc,kp[i])
+        print(i)
 
 
 if __name__=='__main__':
@@ -153,8 +165,9 @@ if __name__=='__main__':
             out_kpcd.append(kp)
     for i in range(len(out_kpcd)):
         out_kpcd[i] = out_kpcd[i].cpu().numpy()
-
     for i in range(len(out_kpcd)):
         kp_id=find_nearest_point(ori_data[i],out_kpcd[i])
-        # visualize_pointcloud(ori_data[i],kp_id)
-        np.savez(paths[i].replace('processed.obj','keypoints.npz'+str(ns.n_keypoint)),keypoints=out_kpcd[i],keypoint_id=kp_id,pointcloud=ori_data[i])
+        visualize_pointcloud(ori_data[i],kp_id)
+        # get_id_visualize(ori_data[i],kp_id)
+        # print("save keypoints to "+paths[i].replace('processed.obj','keypoints.npz'+str(ns.n_keypoint)))
+        # np.savez(paths[i].replace('processed.obj','keypoints.npz'+str(50)),keypoints=out_kpcd[i],keypoint_id=kp_id,pointcloud=ori_data[i])
