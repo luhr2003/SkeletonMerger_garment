@@ -15,9 +15,9 @@ import numpy as np
 import argparse
 
 arg_parser = argparse.ArgumentParser(description="Predictor for Skeleton Merger on KeypointNet dataset. Outputs a npz file with two arrays: kpcd - (N, k, 3) xyz coordinates of keypoints detected; nfact - (N, 2) normalization factor, or max and min coordinate values in a point cloud.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-arg_parser.add_argument('-i', '--pcd-path', type=str, default='/home/luhr/correspondence/softgym_cloth/garmentgym/trousers',
+arg_parser.add_argument('-i', '--pcd-path', type=str, default='/home/luhr/correspondence/softgym_cloth/garmentgym/dress',
                         help='Point cloud file folder path from KeypointNet dataset.')
-arg_parser.add_argument('-m', '--checkpoint-path', '--model-path', type=str, default='trousers.pth',
+arg_parser.add_argument('-m', '--checkpoint-path', '--model-path', type=str, default='dress.pth',
                         help='Model checkpoint file path to load.')
 arg_parser.add_argument('-d', '--device', type=str, default='cuda',
                         help='Pytorch device for predicting.')
@@ -107,11 +107,9 @@ def prepare_data(path):
                 vertices, trangle_faces, stretch_edges, bend_edges, shear_edges = load_cloth_mesh(os.path.join(root, file))
                 points=np.array(vertices)
                 ori_data.append(points)
-                # downsample to 10000 points
-                if len(points)>ns.max_points:
-                    points=points[np.random.choice(len(points),ns.max_points,replace=False)]
-                    data.append(points)
-                    paths.append(file_path)
+                points=points[np.random.choice(len(points),ns.max_points,replace=True)]
+                data.append(points)
+                paths.append(file_path)
     return ori_data,data,paths
 
 def find_nearest_point(points,kp):
@@ -167,7 +165,7 @@ if __name__=='__main__':
         out_kpcd[i] = out_kpcd[i].cpu().numpy()
     for i in range(len(out_kpcd)):
         kp_id=find_nearest_point(ori_data[i],out_kpcd[i])
-        visualize_pointcloud(ori_data[i],kp_id)
+        # visualize_pointcloud(ori_data[i],kp_id)
         # get_id_visualize(ori_data[i],kp_id)
-        # print("save keypoints to "+paths[i].replace('.obj','keypoints.npz'+str(ns.n_keypoint)))
-        # np.savez(paths[i].replace('.obj','keypoints.npz'+str(50)),keypoints=out_kpcd[i],keypoint_id=kp_id,pointcloud=ori_data[i])
+        print("save keypoints to "+paths[i].replace('.obj','keypoints.npz'+str(ns.n_keypoint)))
+        np.savez(paths[i].replace('.obj','keypoints.npz'+str(50)),keypoints=out_kpcd[i],keypoint_id=kp_id,pointcloud=ori_data[i])
